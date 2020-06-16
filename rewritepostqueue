@@ -30,7 +30,7 @@ while($n < @bytes) {
       # fixup global length
       my @global = @bytes[2+15..2+15+15];
       my $headerlen=int(pack("C*", @global))+$lengthdiff;
-      print STDERR pack("C*", @global)."=>$headerlen\n";
+      print STDERR "length: ".pack("C*", @global)." -> $headerlen\n";
       splice(@bytes, 2+15, 16, unpack("C*", sprintf("%16i", $headerlen)));
     }
     last;
