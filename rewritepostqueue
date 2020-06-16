@@ -1,0 +1,49 @@
+#!/usr/bin/perl -w
+use strict;
+
+local $/;
+my $data = <>;
+#print length($data);
+
+our @bytes = unpack("C*", $data);
+our $n = 0;
+while($n < @bytes) {
+  my $type = $bytes[$n++];
+  my $typechar=chr($type);
+  my $length = $bytes[$n++];
+  # length >= 128 means there is another length byte
+  if($length >= 128) {
+    $length = ($bytes[$n++]<<7) + ($length & 0x7f);
+    if($length > 0x3fff) { die "FIXME length decoder $length @ARGV" }
+  }
+  my @chunkbytes = @bytes[$n..($n+$length-1)];
+  #process_chunk:
+  my $str= pack("C*", @chunkbytes);
+  if($typechar eq "R") {
+    my $newemail=$str; $newemail=~s/\@(novell|microfocus|netiq).com$/\@suse.com/;
+    if($newemail ne $str) {
+      print STDERR "receiver: $str -> $newemail\n";
+      if($length>=128) {die "assumption is that recipient mail is <128 chars"}
+      splice(@bytes, $n-2, length($str)+2, unpack("C*",make_chunk("R", $newemail)));
+      my $lengthdiff= length($newemail)-$length;
+      #$length = length($str);
+      # fixup global length
+      my @global = @bytes[2+15..2+15+15];
+      my $headerlen=int(pack("C*", @global))+$lengthdiff;
+      print STDERR pack("C*", @global)."=>$headerlen\n";
+      splice(@bytes, 2+15, 16, unpack("C*", sprintf("%16i", $headerlen)));
+    }
+    last;
+  }
+
+  $n+=$length;
+  #print("type=$type=$typechar length=$length bytes=@chunkbytes =".pack("C*", @chunkbytes). "\n");
+}
+
+sub make_chunk
+{ my($typechar, $data)=@_;
+  # FIXME: only correct for length<128:
+  $typechar.pack("C", length($data)).$data;
+}
+
+print pack("C*", @bytes);

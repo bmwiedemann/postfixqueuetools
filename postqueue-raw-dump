@@ -1,0 +1,29 @@
+#!/usr/bin/perl -w
+# usage: $0 < /var/spool/postfix/deferred/5/5XXXXXXX
+# dumps raw chunks of postfix queue file
+use strict;
+
+local $/;
+my $data = <>;
+print "total length=".length($data)."\n";
+
+our @bytes = unpack("C*", $data);
+our $n = 0;
+while($n < @bytes) {
+  read_chunk();
+}
+
+sub read_chunk
+{
+  my $type = $bytes[$n++];
+  my $typechar=chr($type);
+  my $length = $bytes[$n++];
+  # length >= 128 means there is another length byte
+  if($length >= 128) {
+    $length = ($bytes[$n++]<<7) + ($length & 0x7f);
+    if($length > 0x3fff) { die "FIXME length decoder $length @ARGV" }
+  }
+  my @chunkbytes = @bytes[$n..($n+$length-1)];
+  $n+=$length;
+  print("type=$type=$typechar length=$length bytes=@chunkbytes =".pack("C*", @chunkbytes). "\n");
+}
