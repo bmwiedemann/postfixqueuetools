@@ -6,3 +6,9 @@ Usage: `rewritepostqueue.sh MAILQUEUEID`
 
 The example code in the `rewritepostqueue` perl script replaces the recipient address domain part.
 There are a few simplifications and assertions covered by a "die" - if you hit it, code needs to be extended.
+
+```bash
+# rewritepostqueue.sh D31192C148
+receiver: someone@netiq.com -> someone@suse.com
+length:              739 -> 738
+```

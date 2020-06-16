@@ -1,4 +1,4 @@
-#!/bin/bash -xe
+#!/bin/bash -e
 id=$1
 first=$(echo $id | cut -c1)
 m=/var/spool/postfix/deferred/$first/$id
@@ -20,7 +20,7 @@ new=$bakdir/$id.new
 test -s $new
 
 filter=/usr/local/sbin/postqueue-raw-dump
-! diff <($filter "$m") <($filter "$new")
+#! diff <($filter "$m") <($filter "$new") # show changes of files again
 
 # move new mail into the old place
 # using cat here to keep old inode number, because that correlates
