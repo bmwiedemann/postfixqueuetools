@@ -1,0 +1,3 @@
+Sometimes you need to manipulate files that are already in the postfix mail queue.
+
+This repo provides tools for that task.
